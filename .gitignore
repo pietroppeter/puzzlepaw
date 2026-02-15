@@ -4,3 +4,12 @@
 # Nim
 nimcache/
 nimblecache/
+
+# Atlas dependencies (cloned packages)
+deps/_packages/
+deps/_nimbles/
+deps/*/
+deps/atlas.cache.json
+
+# Compiled binaries
+src/parloku/play
