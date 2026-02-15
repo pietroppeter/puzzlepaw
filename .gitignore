@@ -1,0 +1,6 @@
+# Claude Code
+.claude/
+
+# Nim
+nimcache/
+nimblecache/
