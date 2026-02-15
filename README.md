@@ -45,3 +45,40 @@ Italian origin.
 ![Parloku solution](images/parloku_example_solved.png)
 
 </details>
+
+### Playtest TUI
+
+A terminal-based player is included for playtesting puzzles. Run it with:
+
+```sh
+nim play
+```
+
+The TUI displays the puzzle grid with colored word hint markers. Use arrow
+keys to navigate, type a letter to place it, and backspace to clear.
+
+```text
+Letters: A I L P S T
+
++-------+-------+
+| . S . | . . . |
+| 3 . . | . . . |
++-------+-------+
+| . . . | . . . |
+| 2 . . | L . . |
++-------+-------+
+| . . . | . . . |
+| 1 . . | . P . |
++-------+-------+
+
+Word hints:
+  1. ITALIA
+  2. PASTA
+  3. ALPI
+```
+
+## Claude session logs
+
+This project is developed with [Claude Code](https://claude.ai/claude-code).
+Session logs are kept in the [claude/](claude/) folder, documenting what was
+built, decisions made, and lessons learned in each session.
