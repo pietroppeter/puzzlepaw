@@ -1,4 +1,4 @@
-# Puzzleclaw
+# Puzzlepaw
 
 A collection of small tools for crafting logic puzzles, written in
 [Nim](https://nim-lang.org).
