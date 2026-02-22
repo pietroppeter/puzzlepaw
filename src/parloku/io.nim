@@ -1,4 +1,5 @@
-import std/strutils
+import std/[strutils, os, algorithm]
+import jsony
 import types
 import values
 
@@ -48,3 +49,19 @@ proc printProblem*(p: Problem) =
 proc printSolution*(s: Grid) =
   ## Pretty-prints a Parloku solution to stdout.
   printGrid(s)
+
+proc savePuzzle*(puzzle: Puzzle, path: string) =
+  ## Saves a Puzzle to a JSON file.
+  writeFile(path, puzzle.toJson() & "\n")
+
+proc loadPuzzle*(path: string): Puzzle =
+  ## Loads a Puzzle from a JSON file.
+  readFile(path).fromJson(Puzzle)
+
+proc listPuzzles*(dir: string): seq[string] =
+  ## Returns sorted list of puzzle JSON filenames in the given directory.
+  var files: seq[string]
+  for f in walkFiles(dir / "puzzle*.json"):
+    files.add f.extractFilename
+  files.sort()
+  files

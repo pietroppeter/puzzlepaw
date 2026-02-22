@@ -10,3 +10,5 @@ requires "nim >= 2.2.0"
 requires "illwill"
 
 
+requires "jsony"
+

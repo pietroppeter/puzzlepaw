@@ -16,14 +16,19 @@ let exampleProblem = Problem(
   ],
 )
 
-let exampleSolution: Grid = [
+let examplePuzzle = Puzzle(
+  problem: exampleProblem,
+  solution: [
   ['T', 'S', 'I', 'P', 'L', 'A'],
   ['A', 'L', 'P', 'T', 'I', 'S'],
   ['L', 'I', 'T', 'A', 'S', 'P'],
   ['P', 'A', 'S', 'L', 'T', 'I'],
   ['S', 'P', 'L', 'I', 'A', 'T'],
   ['I', 'T', 'A', 'S', 'P', 'L'],
-]
+  ],
+)
+
+let exampleSolution = examplePuzzle.solution
 
 proc captureStdout(body: proc()): string =
   let oldStdout = stdout
@@ -72,5 +77,34 @@ block testPrintSolution:
 +-------+-------+
 """
   doAssert output == expected, "Solution output mismatch:\n" & output
+
+block testSaveLoadRoundtrip:
+  let (tmpFile, tmpPath) = createTempFile("puzzle_", ".json")
+  tmpFile.close()
+  savePuzzle(examplePuzzle, tmpPath)
+  let loaded = loadPuzzle(tmpPath)
+  doAssert loaded.problem.letters == examplePuzzle.problem.letters,
+    "Letters mismatch after round-trip"
+  doAssert loaded.problem.letterHints == examplePuzzle.problem.letterHints,
+    "Letter hints mismatch after round-trip"
+  doAssert loaded.problem.wordHints == examplePuzzle.problem.wordHints,
+    "Word hints mismatch after round-trip"
+  doAssert loaded.solution == examplePuzzle.solution,
+    "Solution mismatch after round-trip"
+  removeFile(tmpPath)
+
+block testLoadPuzzleFromData:
+  let dataDir = parentDir(currentSourcePath()) / ".." / "data"
+  let puzzle = loadPuzzle(dataDir / "puzzle1.json")
+  doAssert puzzle.problem.letters == ['A', 'I', 'L', 'P', 'S', 'T'],
+    "puzzle1.json letters mismatch"
+  doAssert puzzle.solution[0] == ['T', 'S', 'I', 'P', 'L', 'A'],
+    "puzzle1.json first row mismatch"
+
+block testListPuzzles:
+  let dataDir = parentDir(currentSourcePath()) / ".." / "data"
+  let puzzles = listPuzzles(dataDir)
+  doAssert puzzles.len >= 1, "Expected at least 1 puzzle file"
+  doAssert "puzzle1.json" in puzzles, "puzzle1.json not found in listing"
 
 echo "All tests passed."

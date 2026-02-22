@@ -2,14 +2,8 @@ import std/[os, strutils]
 import illwill
 import types
 import values
-
-const
-  gridX = 2
-  gridY = 3
-  hLine = "+-------+-------+"
-
-# Colors assigned to word hints (one per hint)
-const wordColors = [fgRed, fgMagenta, fgBlue, fgYellow, fgGreen, fgCyan]
+import io
+import tui
 
 type
   GameState = object
@@ -37,18 +31,6 @@ proc initGame(puzzle: Puzzle): GameState =
   for i, hint in puzzle.problem.wordHints:
     result.wordStart[hint.pos.row][hint.pos.col] = i
 
-proc cellScreenX(col: int): int =
-  ## Map grid column to x. Layout: "| X X X | X X X |"
-  ## Positions:                     0123456789...
-  let box = col div boxCols
-  let inBox = col mod boxCols
-  result = gridX + 1 + box * 8 + inBox * 2 + 1
-
-proc cellScreenY(row: int): int =
-  ## Map grid row to y. Horizontal lines at box boundaries.
-  let box = row div boxRows
-  result = gridY + 1 + box * (boxRows + 1) + (row mod boxRows)
-
 proc isValidLetter(game: GameState, ch: char): bool =
   ch in game.puzzle.problem.letters
 
@@ -58,27 +40,17 @@ proc checkSolved(game: var GameState) =
       if game.grid[row][col] != game.puzzle.solution[row][col]:
         return
   game.solved = true
-  game.message = "Puzzle solved!"
+  game.message = "Puzzle solved! Press Q to go back."
 
-proc hintColor(idx: int): ForegroundColor =
-  wordColors[idx mod wordColors.len]
-
-proc drawGrid(tb: var TerminalBuffer, game: GameState) =
-  tb.write(gridX, gridY - 2, fgWhite, "Letters: " &
+proc drawPlayGrid(tb: var TerminalBuffer, game: GameState) =
+  tb.write(gridX, gridY - 3, fgWhite, "Letters: " &
     game.puzzle.problem.letters.join(" "))
 
-  # Horizontal lines
-  for boxRow in 0 .. (gridSize div boxRows):
-    let y = gridY + boxRow * (boxRows + 1)
-    tb.write(gridX, y, fgYellow, hLine)
+  drawGridLines(tb)
 
-  # Vertical separators and cell contents
   for row in 0 ..< gridSize:
+    drawGridSeparators(tb, row)
     let y = cellScreenY(row)
-    # Draw the full row template: "| . . . | . . . |"
-    tb.write(gridX, y, fgYellow, "|")
-    tb.write(gridX + 8, y, fgYellow, "|")
-    tb.write(gridX + 16, y, fgYellow, "|")
 
     for col in 0 ..< gridSize:
       let x = cellScreenX(col)
@@ -100,10 +72,8 @@ proc drawGrid(tb: var TerminalBuffer, game: GameState) =
       elif game.fixed[row][col]:
         tb.write(x, y, fgCyan, $ch)
       elif wi >= 0 and ch == '.':
-        # Show word hint number in its color
         tb.write(x, y, hintColor(wi), $(wi + 1))
       elif wi >= 0:
-        # Cell has a letter and is a word start: show letter in hint color
         tb.write(x, y, hintColor(wi), $ch)
       elif ch != '.':
         tb.write(x, y, fgGreen, $ch)
@@ -121,30 +91,14 @@ proc drawHelp(tb: var TerminalBuffer, game: GameState) =
   let helpY = gridY + (gridSize div boxRows) * (boxRows + 1) +
     game.puzzle.problem.wordHints.len + 4
   tb.write(gridX, helpY, fgWhite,
-    "Arrows: move | Letter: place | Backspace: clear | Q: quit")
+    "Arrows: move | Letter: place | Backspace: clear | Q: back")
   if game.message.len > 0:
     let msgColor = if game.solved: fgGreen else: fgYellow
     tb.write(gridX, helpY + 2, msgColor, game.message)
 
-proc exitProc() {.noconv.} =
-  illwillDeinit()
-  showCursor()
-  quit(0)
-
-proc keyToChar(key: Key): char =
-  let ord = key.int
-  if ord >= Key.A.int and ord <= Key.Z.int:
-    return chr(ord - Key.A.int + 'A'.int)
-  if ord >= Key.ShiftA.int and ord <= Key.ShiftZ.int:
-    return chr(ord - Key.ShiftA.int + 'A'.int)
-  return '\0'
-
 proc play*(puzzle: Puzzle) =
+  ## Play a puzzle. Returns when the user presses Q/Escape.
   var game = initGame(puzzle)
-
-  illwillInit(fullscreen = true)
-  setControlCHook(exitProc)
-  hideCursor()
 
   while true:
     var tb = newTerminalBuffer(terminalWidth(), terminalHeight())
@@ -152,7 +106,7 @@ proc play*(puzzle: Puzzle) =
     var key = getKey()
     case key
     of Key.Escape, Key.Q, Key.ShiftQ:
-      exitProc()
+      return
     of Key.Up:
       if game.cursorRow > 0: game.cursorRow.dec
     of Key.Down:
@@ -176,36 +130,42 @@ proc play*(puzzle: Puzzle) =
         else:
           game.message = $ch & " is not one of the puzzle letters"
 
-    drawGrid(tb, game)
+    drawPlayGrid(tb, game)
     drawWordHints(tb, game)
     drawHelp(tb, game)
 
     tb.display()
     sleep(20)
 
-when isMainModule:
-  let puzzle = Puzzle(
-    problem: Problem(
-      letters: ['A', 'I', 'L', 'P', 'S', 'T'],
-      letterHints: @[
-        HintLetter(pos: (row: 0, col: 1), letter: 'S'),
-        HintLetter(pos: (row: 3, col: 3), letter: 'L'),
-        HintLetter(pos: (row: 5, col: 4), letter: 'P'),
-      ],
-      wordHints: @[
-        HintWord(pos: (row: 5, col: 0), word: "ITALIA"),
-        HintWord(pos: (row: 3, col: 0), word: "PASTA"),
-        HintWord(pos: (row: 1, col: 0), word: "ALPI"),
-      ],
-    ),
-    solution: [
-      ['T', 'S', 'I', 'P', 'L', 'A'],
-      ['A', 'L', 'P', 'T', 'I', 'S'],
-      ['L', 'I', 'T', 'A', 'S', 'P'],
-      ['P', 'A', 'S', 'L', 'T', 'I'],
-      ['S', 'P', 'L', 'I', 'A', 'T'],
-      ['I', 'T', 'A', 'S', 'P', 'L'],
-    ],
-  )
+proc selectPuzzle*(dataDir: string): int =
+  ## Show a list of available puzzles. Returns selected index (0-based), or -1 if cancelled.
+  let files = listPuzzles(dataDir)
+  if files.len == 0:
+    return -1
 
-  play(puzzle)
+  var selected = 0
+
+  while true:
+    var tb = newTerminalBuffer(terminalWidth(), terminalHeight())
+    tb.write(2, 1, fgWhite, "Select a puzzle (Up/Down, Enter to play, Q to go back):")
+
+    for i, f in files:
+      let color = if i == selected: fgGreen else: fgWhite
+      let prefix = if i == selected: "> " else: "  "
+      tb.write(2, 3 + i, color, prefix & f)
+
+    tb.display()
+    sleep(20)
+
+    let key = getKey()
+    case key
+    of Key.Up:
+      if selected > 0: selected.dec
+    of Key.Down:
+      if selected < files.len - 1: selected.inc
+    of Key.Enter:
+      return selected
+    of Key.Escape, Key.Q, Key.ShiftQ:
+      return -1
+    else:
+      discard
