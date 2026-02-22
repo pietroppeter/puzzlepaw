@@ -114,6 +114,12 @@ block testWordsFromFilename:
   doAssert wordsFromFilename("puzzle2.json") == @[],
     "wordsFromFilename should return empty for name without words"
 
+block testPuzzleDisplayName:
+  doAssert puzzleDisplayName("puzzle1-ITALIA-PASTA-ALPI.json") == "1. ITALIA PASTA ALPI",
+    "puzzleDisplayName failed for puzzle1"
+  doAssert puzzleDisplayName("puzzle2-AMICA-GIOCO-MAGIA.json") == "2. AMICA GIOCO MAGIA",
+    "puzzleDisplayName failed for puzzle2"
+
 block testNextPuzzleNumber:
   let dataDir = parentDir(currentSourcePath()) / ".." / "data"
   let n = nextPuzzleNumber(dataDir)

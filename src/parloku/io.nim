@@ -91,3 +91,13 @@ proc puzzleFilePath*(dir: string, n: int, words: seq[string]): string =
   ## Returns the path for puzzle N with word hints encoded in the filename.
   let suffix = if words.len > 0: "-" & words.join("-") else: ""
   dir / ("puzzle" & $n & suffix & ".json")
+
+proc puzzleDisplayName*(filename: string): string =
+  ## Returns a display string like "1. ITALIA PASTA ALPI" from a puzzle filename.
+  let base = filename.extractFilename.changeFileExt("")
+  let afterPuzzle = base[6..^1]  # strip "puzzle"
+  let dashIdx = afterPuzzle.find('-')
+  let numStr = if dashIdx >= 0: afterPuzzle[0..<dashIdx] else: afterPuzzle
+  let words = wordsFromFilename(filename)
+  let label = if words.len > 0: words.join(" ") else: filename
+  numStr & ". " & label

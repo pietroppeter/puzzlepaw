@@ -410,9 +410,7 @@ proc selectAndCraft*(dataDir: string) =
   var options = @["New puzzle"]
   let files = listPuzzles(dataDir)
   for f in files:
-    let words = wordsFromFilename(f)
-    let label = if words.len > 0: words.join(" ") else: f
-    options.add "Edit " & label
+    options.add "Edit " & puzzleDisplayName(f)
 
   var selected = 0
 

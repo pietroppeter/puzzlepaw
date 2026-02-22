@@ -152,9 +152,7 @@ proc selectPuzzle*(dataDir: string): int =
     for i, f in files:
       let color = if i == selected: fgGreen else: fgWhite
       let prefix = if i == selected: "> " else: "  "
-      let words = wordsFromFilename(f)
-      let label = if words.len > 0: words.join(" ") else: f
-      tb.write(2, 3 + i, color, prefix & label)
+      tb.write(2, 3 + i, color, prefix & puzzleDisplayName(f))
 
     tb.display()
     sleep(20)
