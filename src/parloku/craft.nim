@@ -1,4 +1,4 @@
-import std/[os, strformat, strutils, sets, algorithm]
+import std/[os, strformat, strutils, sets, algorithm, sequtils]
 import illwill
 import types
 import values
@@ -25,11 +25,13 @@ type
     dataDir: string
     editingFile: string   # non-empty if editing an existing puzzle
 
-proc nextPuzzleFile(dataDir: string): string =
-  var n = 1
-  while fileExists(dataDir / fmt"puzzle{n}.json"):
-    n.inc
-  dataDir / fmt"puzzle{n}.json"
+proc currentPuzzleNumber(editingFile: string): int =
+  ## Extracts puzzle number from an existing file path like ".../puzzle3-WORD.json".
+  let base = editingFile.extractFilename.changeFileExt("")
+  let afterPuzzle = base[6..^1]
+  let dashIdx = afterPuzzle.find('-')
+  let numStr = if dashIdx >= 0: afterPuzzle[0..<dashIdx] else: afterPuzzle
+  try: parseInt(numStr) except ValueError: -1
 
 proc inferLetters(state: var CraftState) =
   ## Collect unique letters from all word hints, sorted alphabetically.
@@ -200,13 +202,19 @@ proc drawCraftHelp(tb: var TerminalBuffer, state: CraftState) =
     tb.write(gridX, baseY + 2, fgYellow, state.message)
 
 proc saveCurrent(state: var CraftState) =
-  let path = if state.editingFile.len > 0:
-    state.editingFile
+  let words = state.puzzle.problem.wordHints.mapIt(it.word)
+  let n = if state.editingFile.len > 0:
+    let extracted = currentPuzzleNumber(state.editingFile)
+    if extracted > 0: extracted else: nextPuzzleNumber(state.dataDir)
   else:
-    nextPuzzleFile(state.dataDir)
-  savePuzzle(state.puzzle, path)
-  state.editingFile = path
-  state.message = "Saved to " & path.extractFilename
+    nextPuzzleNumber(state.dataDir)
+  let newPath = puzzleFilePath(state.dataDir, n, words)
+  if state.editingFile.len > 0 and state.editingFile != newPath and
+      fileExists(state.editingFile):
+    removeFile(state.editingFile)
+  savePuzzle(state.puzzle, newPath)
+  state.editingFile = newPath
+  state.message = "Saved to " & newPath.extractFilename
 
 proc handleWordHintsMode(state: var CraftState, key: Key) =
   case key
@@ -402,7 +410,7 @@ proc selectAndCraft*(dataDir: string) =
   var options = @["New puzzle"]
   let files = listPuzzles(dataDir)
   for f in files:
-    options.add "Edit " & f
+    options.add "Edit " & puzzleDisplayName(f)
 
   var selected = 0
 
