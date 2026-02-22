@@ -1,12 +1,8 @@
 import std/strutils
 import types
+import values
 
-const
-  boxRows = 2
-  boxCols = 3
-  gridSize = 6
-
-proc printGrid(grid: array[gridSize, array[gridSize, char]]) =
+proc printGrid(grid: Grid) =
   ## Prints a 6x6 grid with box separators.
   let hLine = "+" & "-------+".repeat(gridSize div boxCols)
 
@@ -30,7 +26,7 @@ proc printProblem*(p: Problem) =
   echo ""
 
   # Build a sparse grid from letter hints
-  var grid: array[gridSize, array[gridSize, char]]
+  var grid: Grid
   for row in 0 ..< gridSize:
     for col in 0 ..< gridSize:
       grid[row][col] = '.'
@@ -49,6 +45,6 @@ proc printProblem*(p: Problem) =
   for i, hint in p.wordHints:
     echo "  ", i + 1, ". ", hint.word
 
-proc printSolution*(s: Solution) =
+proc printSolution*(s: Grid) =
   ## Pretty-prints a Parloku solution to stdout.
   printGrid(s)

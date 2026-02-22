@@ -1,11 +1,9 @@
 import std/[os, strutils]
 import illwill
 import types
+import values
 
 const
-  gridSize = 6
-  boxRows = 2
-  boxCols = 3
   gridX = 2
   gridY = 3
   hLine = "+-------+-------+"
@@ -15,9 +13,8 @@ const wordColors = [fgRed, fgMagenta, fgBlue, fgYellow, fgGreen, fgCyan]
 
 type
   GameState = object
-    problem: Problem
-    solution: Solution
-    grid: array[gridSize, array[gridSize, char]]
+    puzzle: Puzzle
+    grid: Grid
     cursorRow: int
     cursorCol: int
     fixed: array[gridSize, array[gridSize, bool]]
@@ -25,20 +22,19 @@ type
     message: string
     solved: bool
 
-proc initGame(problem: Problem, solution: Solution): GameState =
-  result.problem = problem
-  result.solution = solution
+proc initGame(puzzle: Puzzle): GameState =
+  result.puzzle = puzzle
 
   for row in 0 ..< gridSize:
     for col in 0 ..< gridSize:
       result.grid[row][col] = '.'
       result.wordStart[row][col] = -1
 
-  for hint in problem.letterHints:
+  for hint in puzzle.problem.letterHints:
     result.grid[hint.pos.row][hint.pos.col] = hint.letter
     result.fixed[hint.pos.row][hint.pos.col] = true
 
-  for i, hint in problem.wordHints:
+  for i, hint in puzzle.problem.wordHints:
     result.wordStart[hint.pos.row][hint.pos.col] = i
 
 proc cellScreenX(col: int): int =
@@ -54,12 +50,12 @@ proc cellScreenY(row: int): int =
   result = gridY + 1 + box * (boxRows + 1) + (row mod boxRows)
 
 proc isValidLetter(game: GameState, ch: char): bool =
-  ch in game.problem.letters
+  ch in game.puzzle.problem.letters
 
 proc checkSolved(game: var GameState) =
   for row in 0 ..< gridSize:
     for col in 0 ..< gridSize:
-      if game.grid[row][col] != game.solution[row][col]:
+      if game.grid[row][col] != game.puzzle.solution[row][col]:
         return
   game.solved = true
   game.message = "Puzzle solved!"
@@ -69,7 +65,7 @@ proc hintColor(idx: int): ForegroundColor =
 
 proc drawGrid(tb: var TerminalBuffer, game: GameState) =
   tb.write(gridX, gridY - 2, fgWhite, "Letters: " &
-    game.problem.letters.join(" "))
+    game.puzzle.problem.letters.join(" "))
 
   # Horizontal lines
   for boxRow in 0 .. (gridSize div boxRows):
@@ -117,13 +113,13 @@ proc drawGrid(tb: var TerminalBuffer, game: GameState) =
 proc drawWordHints(tb: var TerminalBuffer, game: GameState) =
   let hintsY = gridY + (gridSize div boxRows) * (boxRows + 1) + 2
   tb.write(gridX, hintsY, fgWhite, "Word hints:")
-  for i, hint in game.problem.wordHints:
+  for i, hint in game.puzzle.problem.wordHints:
     tb.write(gridX + 2, hintsY + 1 + i, hintColor(i),
       $(i + 1) & ". " & hint.word)
 
 proc drawHelp(tb: var TerminalBuffer, game: GameState) =
   let helpY = gridY + (gridSize div boxRows) * (boxRows + 1) +
-    game.problem.wordHints.len + 4
+    game.puzzle.problem.wordHints.len + 4
   tb.write(gridX, helpY, fgWhite,
     "Arrows: move | Letter: place | Backspace: clear | Q: quit")
   if game.message.len > 0:
@@ -143,8 +139,8 @@ proc keyToChar(key: Key): char =
     return chr(ord - Key.ShiftA.int + 'A'.int)
   return '\0'
 
-proc play*(problem: Problem, solution: Solution) =
-  var game = initGame(problem, solution)
+proc play*(puzzle: Puzzle) =
+  var game = initGame(puzzle)
 
   illwillInit(fullscreen = true)
   setControlCHook(exitProc)
@@ -188,27 +184,28 @@ proc play*(problem: Problem, solution: Solution) =
     sleep(20)
 
 when isMainModule:
-  let problem = Problem(
-    letters: ['A', 'I', 'L', 'P', 'S', 'T'],
-    letterHints: @[
-      HintLetter(pos: (row: 0, col: 1), letter: 'S'),
-      HintLetter(pos: (row: 3, col: 3), letter: 'L'),
-      HintLetter(pos: (row: 5, col: 4), letter: 'P'),
-    ],
-    wordHints: @[
-      HintWord(pos: (row: 5, col: 0), word: "ITALIA"),
-      HintWord(pos: (row: 3, col: 0), word: "PASTA"),
-      HintWord(pos: (row: 1, col: 0), word: "ALPI"),
+  let puzzle = Puzzle(
+    problem: Problem(
+      letters: ['A', 'I', 'L', 'P', 'S', 'T'],
+      letterHints: @[
+        HintLetter(pos: (row: 0, col: 1), letter: 'S'),
+        HintLetter(pos: (row: 3, col: 3), letter: 'L'),
+        HintLetter(pos: (row: 5, col: 4), letter: 'P'),
+      ],
+      wordHints: @[
+        HintWord(pos: (row: 5, col: 0), word: "ITALIA"),
+        HintWord(pos: (row: 3, col: 0), word: "PASTA"),
+        HintWord(pos: (row: 1, col: 0), word: "ALPI"),
+      ],
+    ),
+    solution: [
+      ['T', 'S', 'I', 'P', 'L', 'A'],
+      ['A', 'L', 'P', 'T', 'I', 'S'],
+      ['L', 'I', 'T', 'A', 'S', 'P'],
+      ['P', 'A', 'S', 'L', 'T', 'I'],
+      ['S', 'P', 'L', 'I', 'A', 'T'],
+      ['I', 'T', 'A', 'S', 'P', 'L'],
     ],
   )
 
-  let solution: Solution = [
-    ['T', 'S', 'I', 'P', 'L', 'A'],
-    ['A', 'L', 'P', 'T', 'I', 'S'],
-    ['L', 'I', 'T', 'A', 'S', 'P'],
-    ['P', 'A', 'S', 'L', 'T', 'I'],
-    ['S', 'P', 'L', 'I', 'A', 'T'],
-    ['I', 'T', 'A', 'S', 'P', 'L'],
-  ]
-
-  play(problem, solution)
+  play(puzzle)

@@ -16,7 +16,7 @@ let exampleProblem = Problem(
   ],
 )
 
-let exampleSolution: Solution = [
+let exampleSolution: Grid = [
   ['T', 'S', 'I', 'P', 'L', 'A'],
   ['A', 'L', 'P', 'T', 'I', 'S'],
   ['L', 'I', 'T', 'A', 'S', 'P'],

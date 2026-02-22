@@ -14,4 +14,8 @@ type
     letterHints*: seq[HintLetter]
     wordHints*: seq[HintWord]
 
-  Solution* = array[6, array[6, char]]
+  Grid* = array[6, array[6, char]]
+
+  Puzzle* = object
+    problem*: Problem
+    solution*: Grid
