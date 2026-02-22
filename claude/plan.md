@@ -153,31 +153,18 @@ import std/[json, strutils, sequtils]
 import karax/[kdom, karaxdsl, vdom, vstyles, kbase]
 ```
 
-### Type Definitions (redeclared for JS backend)
+### Type Definitions
+
+`parloku/types.nim` has no imports (pure type declarations), so it can be
+imported directly in the Karax block — no need to redeclare `Coord`,
+`HintLetter`, `HintWord`, `Problem`, `Grid`, or `Puzzle`.
+
+Only `AppState` is new and must be declared in `webui.nim`:
 
 ```nim
+import parloku/types   # Coord, HintLetter, HintWord, Problem, Grid, Puzzle
+
 type
-  Coord = tuple[row, col: int]
-
-  HintLetter = object
-    pos: Coord
-    letter: char
-
-  HintWord = object
-    pos: Coord
-    word: string
-
-  Problem = object
-    letters: array[6, char]
-    letterHints: seq[HintLetter]
-    wordHints: seq[HintWord]
-
-  Grid = array[6, array[6, char]]
-
-  Puzzle = object
-    problem: Problem
-    solution: Grid
-
   AppState = object
     puzzles:       seq[Puzzle]
     currentIdx:    int

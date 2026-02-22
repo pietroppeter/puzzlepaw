@@ -14,3 +14,7 @@ deps/atlas.cache.json
 # Compiled binaries
 src/pzlpaw
 src/parloku/play
+src/webui
+
+# nimib temp files (left if build is interrupted)
+src/*_nbCodeToJs_*.nim
