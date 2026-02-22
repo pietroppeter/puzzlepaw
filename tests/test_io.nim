@@ -95,16 +95,34 @@ block testSaveLoadRoundtrip:
 
 block testLoadPuzzleFromData:
   let dataDir = parentDir(currentSourcePath()) / ".." / "data"
-  let puzzle = loadPuzzle(dataDir / "puzzle1.json")
+  let puzzle = loadPuzzle(dataDir / "puzzle1-ITALIA-PASTA-ALPI.json")
   doAssert puzzle.problem.letters == ['A', 'I', 'L', 'P', 'S', 'T'],
-    "puzzle1.json letters mismatch"
+    "puzzle1 letters mismatch"
   doAssert puzzle.solution[0] == ['T', 'S', 'I', 'P', 'L', 'A'],
-    "puzzle1.json first row mismatch"
+    "puzzle1 first row mismatch"
 
 block testListPuzzles:
   let dataDir = parentDir(currentSourcePath()) / ".." / "data"
   let puzzles = listPuzzles(dataDir)
   doAssert puzzles.len >= 1, "Expected at least 1 puzzle file"
-  doAssert "puzzle1.json" in puzzles, "puzzle1.json not found in listing"
+  doAssert "puzzle1-ITALIA-PASTA-ALPI.json" in puzzles,
+    "puzzle1-ITALIA-PASTA-ALPI.json not found in listing"
+
+block testWordsFromFilename:
+  doAssert wordsFromFilename("puzzle1-ITALIA-PASTA-ALPI.json") == @["ITALIA", "PASTA", "ALPI"],
+    "wordsFromFilename failed for puzzle1"
+  doAssert wordsFromFilename("puzzle2.json") == @[],
+    "wordsFromFilename should return empty for name without words"
+
+block testNextPuzzleNumber:
+  let dataDir = parentDir(currentSourcePath()) / ".." / "data"
+  let n = nextPuzzleNumber(dataDir)
+  doAssert n >= 3, "nextPuzzleNumber should be at least 3 with 2 existing puzzles"
+
+block testPuzzleFilePath:
+  let path = puzzleFilePath("/data", 3, @["FOO", "BAR"])
+  doAssert path == "/data/puzzle3-FOO-BAR.json", "puzzleFilePath mismatch: " & path
+  let pathNoWords = puzzleFilePath("/data", 4, @[])
+  doAssert pathNoWords == "/data/puzzle4.json", "puzzleFilePath no-words mismatch: " & pathNoWords
 
 echo "All tests passed."

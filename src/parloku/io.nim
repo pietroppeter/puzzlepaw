@@ -65,3 +65,29 @@ proc listPuzzles*(dir: string): seq[string] =
     files.add f.extractFilename
   files.sort()
   files
+
+proc wordsFromFilename*(filename: string): seq[string] =
+  ## Extracts word hints from a filename like "puzzle1-WORD1-WORD2-WORD3.json".
+  let base = filename.extractFilename.changeFileExt("")
+  let parts = base.split('-')
+  if parts.len > 1:
+    result = parts[1..^1]
+
+proc nextPuzzleNumber*(dir: string): int =
+  ## Returns the next available puzzle number based on existing files.
+  result = 1
+  for f in walkFiles(dir / "puzzle*.json"):
+    let base = f.extractFilename.changeFileExt("")
+    let afterPuzzle = base[6..^1]  # strip "puzzle"
+    let dashIdx = afterPuzzle.find('-')
+    let numStr = if dashIdx >= 0: afterPuzzle[0..<dashIdx] else: afterPuzzle
+    try:
+      let n = parseInt(numStr)
+      if n >= result: result = n + 1
+    except ValueError:
+      discard
+
+proc puzzleFilePath*(dir: string, n: int, words: seq[string]): string =
+  ## Returns the path for puzzle N with word hints encoded in the filename.
+  let suffix = if words.len > 0: "-" & words.join("-") else: ""
+  dir / ("puzzle" & $n & suffix & ".json")
