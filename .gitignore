@@ -19,3 +19,7 @@ tests/*.js
 tests/test_io
 tests/test_solver
 tests/test_solver_js
+
+# nimib explainer dependencies
+docs/deps/
+docs/solver
