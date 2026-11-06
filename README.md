@@ -46,9 +46,27 @@ Italian origin.
 
 </details>
 
-### Playtest TUI
+### Play and build Parloku on the web
 
-A terminal-based player is included for playtesting puzzles. Run it with:
+Parloku grew out of this repository into its own web game, with a puzzle builder:
+[pietroppeter/parloku](https://github.com/pietroppeter/parloku).
+
+- **Play it:** https://pietroppeter.github.io/parloku/ (drag the letter tiles onto the board; English and Italian)
+- **Build it:** https://pietroppeter.github.io/parloku/builder.html (place the words, see every solution, pin clues,
+  share the puzzle)
+- **Devlog:** [Back to basics](https://pietroppeter.github.io/parloku/devlog/basics/),
+  [a daily hello and a first lesson](https://pietroppeter.github.io/parloku/devlog/splash/),
+  [ten skins for a letter game](https://pietroppeter.github.io/parloku/devlog/pastel-skins/),
+  [built in CI](https://pietroppeter.github.io/parloku/devlog/ci/)
+
+The solver that counts solutions and gives the pencil marks lives in parloku too
+([src/solver.nim](https://github.com/pietroppeter/parloku/blob/main/src/solver.nim)), next to the builder that uses
+it; it can come back here as a library when another tool needs it. Puzzles are still stored in the same JSON format
+as `data/` here, and links use the same `LETTERS_GIVENS_WORDS` code.
+
+### Playtest TUI (historical)
+
+The first player was a terminal UI, kept here as a record; the web game above has replaced it. Run it with:
 
 ```sh
 nim play
