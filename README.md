@@ -112,11 +112,6 @@ nim r -d:release src/pzlsolve.nim AILPST__50ITALIA.30PASTA.10ALPI   # no givens:
 nim r -d:release src/pzlsolve.nim AILPST__50ITALIA.30PASTA --starts:ALPI
 ```
 
-An illustrated walk-through of the solver, with live outputs and an in-browser
-builder preview, is a [nimib](https://github.com/pietroppeter/nimib) notebook in
-`docs/solver.nim`. Build it with `cd docs && sh deps.sh && nim c -r -d:release solver.nim`
-(writes `docs/index.html`; needs PCRE1, e.g. `libpcre3`).
-
 ## Claude session logs
 
 This project is developed with [Claude Code](https://claude.ai/claude-code).

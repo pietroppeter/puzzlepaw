@@ -328,14 +328,6 @@ proc initCtx(p: Problem, opts: SolveOptions, b: var Board,
     alive.add all
   (ctx, ok)
 
-proc wordPathCounts*(p: Problem, opts = defaultOptions()): seq[int] =
-  ## For each word hint, how many geometric paths survive the static
-  ## prefilter (before any search). Handy to see how much a word constrains.
-  var b: Board
-  var alive: seq[seq[int]]
-  let (ctx, _) = initCtx(p, opts, b, alive)
-  for ps in ctx.paths: result.add ps.len
-
 proc solve*(p: Problem, opts = defaultOptions()): SolveResult =
   ## Counts (up to `opts.limit`) and returns (up to `opts.keep`) solutions.
   var b: Board
