@@ -77,41 +77,6 @@ Word hints:
   3. ALPI
 ```
 
-### Solver and builder tools
-
-`src/parloku/solver.nim` is a small constraint solver meant to help design
-puzzles: pick some words and givens, and ask how many grids fit.
-
-- `countSolutions(p, limit)` / `solve(p, opts)` / `isUnique(p)`: count and
-  list solutions (sudoku propagation plus word-path pruning, so a puzzle with
-  three words and no givens is solved in milliseconds).
-- `candidates(p)`: for each cell, the letters it takes in at least one
-  solution. Cells with a single candidate are already forced; the others are
-  where a given would help.
-- `wordStarts(p, word)`: every cell where a new word could start, with how
-  many solutions each choice leaves (most constraining first).
-- `checkGrid(p, grid)` / `wordPaths(grid, hint)`: validate a filled grid and
-  show how each word is read.
-- `validate(p)`: catch letters not in the set, double letters (impossible on
-  adjacent cells), hints outside the grid.
-- `SolveOptions.allowRevisit` / `allowShared`: by the rules paths may
-  revisit cells and words may share cells; switch these off to check a
-  puzzle is also unique under the stricter "elegant" reading.
-
-`src/parloku/code.nim` encodes a problem as a short URL-safe code,
-`LETTERS_GIVENS_WORDS` with 0-based `<row><col>` prefixes, for example
-`AILPST_01S.33L.54P_50ITALIA.30PASTA.10ALPI` for the puzzle above. Both
-modules have no OS dependencies and compile with `nim js`, so a browser
-builder page can reuse them.
-
-From the command line:
-
-```sh
-nim r -d:release src/pzlsolve.nim data/puzzle1-ITALIA-PASTA-ALPI.json
-nim r -d:release src/pzlsolve.nim AILPST__50ITALIA.30PASTA.10ALPI   # no givens: 42 solutions
-nim r -d:release src/pzlsolve.nim AILPST__50ITALIA.30PASTA --starts:ALPI
-```
-
 ## Claude session logs
 
 This project is developed with [Claude Code](https://claude.ai/claude-code).

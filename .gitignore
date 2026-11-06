@@ -14,8 +14,3 @@ deps/atlas.cache.json
 # Compiled binaries
 src/pzlpaw
 src/parloku/play
-src/pzlsolve
-tests/*.js
-tests/test_io
-tests/test_solver
-tests/test_solver_js
